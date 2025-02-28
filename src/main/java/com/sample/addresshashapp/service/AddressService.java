@@ -4,6 +4,8 @@ import com.sample.addresshashapp.model.Address;
 import com.sample.addresshashapp.model.AddressHash;
 import com.sample.addresshashapp.repository.AddressHashRepository;
 import com.google.common.hash.Hashing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.List;
 
 @Service
 public class AddressService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AddressService.class);
 
     @Autowired
     private AddressHashRepository addressHashRepository;
@@ -25,9 +29,12 @@ public class AddressService {
             // Generate Murmur3 hash using Guava
             String hash = Hashing.murmur3_32().hashString(addressAsOneString, StandardCharsets.UTF_8).toString();
 
-            // Create AddressHash entity and save it to the database
+            // Save the address hash to the database
             AddressHash addressHash = new AddressHash(hash);
-            addressHashRepository.save(addressHash);
+            AddressHash savedAddressHash = addressHashRepository.save(addressHash);
+
+            // Log the ID and length of the generated hash
+            logger.info("Saved AddressHash with ID: {} and Hash Length: {}", savedAddressHash.getId(), hash.length());
         }
     }
 
@@ -41,5 +48,10 @@ public class AddressService {
                 address.getState(),
                 address.getCountry(),
                 address.getZipcode());
+    }
+
+    // Fetch all address hashes from the database
+    public List<AddressHash> getAllAddressHashes() {
+        return addressHashRepository.findAll();
     }
 }
